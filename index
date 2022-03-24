@@ -1,0 +1,25 @@
+impl Transaction for TxTransfer {
+    fn verify(&self) -> bool {
+         (*self.from() != *self.to()) &&
+             self.verify_signature(self.from())
+    }
+
+    fn execute(&self, view: &mut Fork) {
+        let mut schema = CurrencySchema { view };
+        let sender = schema.wallet(self.from());
+        let receiver = schema.wallet(self.to());
+        if let (Some(mut sender), Some(mut receiver)) = (sender, receiver) {
+            let amount = self.amount();
+            if sender.balance() >= amount {
+                let sender.decrease(amount);
+                let receiver.increase(amount);
+                println!("Transfer between wallets: {:?} => {:?}",
+                         sender,
+                         receiver);
+                let mut wallets = schema.wallets();
+                wallets.put(self.from(), sender);
+                wallets.put(self.to(), receiver);
+            }
+        }
+    }
+}
